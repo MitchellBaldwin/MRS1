@@ -33,25 +33,15 @@
             this.MRSMainControllerSerialPort = new System.IO.Ports.SerialPort(this.components);
             this.MRS1MainStatusStrip = new System.Windows.Forms.StatusStrip();
             this.MRS1MainToolStrip = new System.Windows.Forms.ToolStrip();
-            this.printCommBufToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.testCommsToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.serialConnectToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.toggleSerialCommDataPanelToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.comPortToolStripComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.testToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.i2cToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.rcToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.label1 = new System.Windows.Forms.Label();
-            this.mcspPortDisplayLabel = new System.Windows.Forms.Label();
-            this.mcspBaudRateDisplayLabel = new System.Windows.Forms.Label();
-            this.mcspParityDisplayLabel = new System.Windows.Forms.Label();
-            this.mcspDataBitsDisplayLabel = new System.Windows.Forms.Label();
-            this.mcspStopBitsDisplayLabel = new System.Windows.Forms.Label();
-            this.mcspConnectCheckBox = new System.Windows.Forms.CheckBox();
-            this.mcspRichTextBox = new System.Windows.Forms.RichTextBox();
-            this.mcspTimer = new System.Windows.Forms.Timer(this.components);
-            this.outBufferDisplayLabel = new System.Windows.Forms.Label();
-            this.inBufferDisplayLabel = new System.Windows.Forms.Label();
+            this.displayUpdateTimer = new System.Windows.Forms.Timer(this.components);
             this.throttleSettingDisplayLabel = new System.Windows.Forms.Label();
             this.lMotSpeedDisplayLabel = new System.Windows.Forms.Label();
             this.rMotSpeedDisplayLabel = new System.Windows.Forms.Label();
@@ -64,8 +54,6 @@
             this.mALAbel = new System.Windows.Forms.Label();
             this.leftIMotorDisplayLabel = new System.Windows.Forms.Label();
             this.iMotorLabel = new System.Windows.Forms.Label();
-            this.bytePositionLabel = new System.Windows.Forms.Label();
-            this.showAllBufferUpdatesCheckBox = new System.Windows.Forms.CheckBox();
             this.tRexAccelerometerPanel = new System.Windows.Forms.Panel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.trexAccelerometerPanelLabel = new System.Windows.Forms.Label();
@@ -83,13 +71,27 @@
             this.speed75Button = new System.Windows.Forms.Button();
             this.speed50Button = new System.Windows.Forms.Button();
             this.speed25Button = new System.Windows.Forms.Button();
+            this.serialCommsDataPanel = new System.Windows.Forms.Panel();
+            this.packetDisplayLabel = new System.Windows.Forms.Label();
             this.commErrorDisplayLabel = new System.Windows.Forms.Label();
+            this.showAllBufferUpdatesCheckBox = new System.Windows.Forms.CheckBox();
+            this.bytePositionLabel = new System.Windows.Forms.Label();
+            this.inBufferDisplayLabel = new System.Windows.Forms.Label();
+            this.outBufferDisplayLabel = new System.Windows.Forms.Label();
+            this.mcspStopBitsDisplayLabel = new System.Windows.Forms.Label();
+            this.mcspDataBitsDisplayLabel = new System.Windows.Forms.Label();
+            this.mcspParityDisplayLabel = new System.Windows.Forms.Label();
+            this.mcspBaudRateDisplayLabel = new System.Windows.Forms.Label();
+            this.mcspPortDisplayLabel = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.toggleDisplayUpdateTimerToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.MRS1MainToolStrip.SuspendLayout();
             this.tRexStatusPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.motorBatteryPictureBox)).BeginInit();
             this.tRexAccelerometerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.steeringPictureBox)).BeginInit();
+            this.serialCommsDataPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // MRSMainControllerSerialPort
@@ -108,41 +110,45 @@
             // MRS1MainToolStrip
             // 
             this.MRS1MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.printCommBufToolStripButton,
-            this.testCommsToolStripButton,
+            this.serialConnectToolStripButton,
+            this.toggleSerialCommDataPanelToolStripButton,
             this.comPortToolStripComboBox,
             this.toolStripSeparator1,
             this.testToolStripButton,
             this.i2cToolStripButton,
             this.rcToolStripButton,
-            this.toolStripSeparator2});
+            this.toolStripSeparator2,
+            this.toggleDisplayUpdateTimerToolStripButton});
             this.MRS1MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MRS1MainToolStrip.Name = "MRS1MainToolStrip";
             this.MRS1MainToolStrip.Size = new System.Drawing.Size(1008, 25);
             this.MRS1MainToolStrip.TabIndex = 1;
             this.MRS1MainToolStrip.Text = "toolStrip1";
             // 
-            // printCommBufToolStripButton
+            // serialConnectToolStripButton
             // 
-            this.printCommBufToolStripButton.CheckOnClick = true;
-            this.printCommBufToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.printCommBufToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("printCommBufToolStripButton.Image")));
-            this.printCommBufToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.printCommBufToolStripButton.Name = "printCommBufToolStripButton";
-            this.printCommBufToolStripButton.Size = new System.Drawing.Size(23, 22);
-            this.printCommBufToolStripButton.Text = "printCommBufToolStripButton";
-            this.printCommBufToolStripButton.ToolTipText = "Display Comm Buffer contents";
-            this.printCommBufToolStripButton.Click += new System.EventHandler(this.printCommBufToolStripButton_Click);
+            this.serialConnectToolStripButton.CheckOnClick = true;
+            this.serialConnectToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.serialConnectToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("serialConnectToolStripButton.Image")));
+            this.serialConnectToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.serialConnectToolStripButton.Name = "serialConnectToolStripButton";
+            this.serialConnectToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.serialConnectToolStripButton.Text = "serialConnectToolStripButton";
+            this.serialConnectToolStripButton.ToolTipText = "Display Comm Buffer contents";
+            this.serialConnectToolStripButton.Click += new System.EventHandler(this.serialConnectToolStripButton_Click);
             // 
-            // testCommsToolStripButton
+            // toggleSerialCommDataPanelToolStripButton
             // 
-            this.testCommsToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.testCommsToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("testCommsToolStripButton.Image")));
-            this.testCommsToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.testCommsToolStripButton.Name = "testCommsToolStripButton";
-            this.testCommsToolStripButton.Size = new System.Drawing.Size(23, 22);
-            this.testCommsToolStripButton.ToolTipText = "Test communications";
-            this.testCommsToolStripButton.Click += new System.EventHandler(this.testCommsToolStripButton_Click);
+            this.toggleSerialCommDataPanelToolStripButton.Checked = true;
+            this.toggleSerialCommDataPanelToolStripButton.CheckOnClick = true;
+            this.toggleSerialCommDataPanelToolStripButton.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.toggleSerialCommDataPanelToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toggleSerialCommDataPanelToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("toggleSerialCommDataPanelToolStripButton.Image")));
+            this.toggleSerialCommDataPanelToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toggleSerialCommDataPanelToolStripButton.Name = "toggleSerialCommDataPanelToolStripButton";
+            this.toggleSerialCommDataPanelToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.toggleSerialCommDataPanelToolStripButton.ToolTipText = "Toggle serial communications data panel";
+            this.toggleSerialCommDataPanelToolStripButton.Click += new System.EventHandler(this.toggleSerialCommDataPanelToolStripButton_Click);
             // 
             // comPortToolStripComboBox
             // 
@@ -211,104 +217,9 @@
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
-            // label1
+            // displayUpdateTimer
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(13, 29);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(136, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "MRS Main Controller Serial:";
-            // 
-            // mcspPortDisplayLabel
-            // 
-            this.mcspPortDisplayLabel.Location = new System.Drawing.Point(155, 29);
-            this.mcspPortDisplayLabel.Name = "mcspPortDisplayLabel";
-            this.mcspPortDisplayLabel.Size = new System.Drawing.Size(48, 13);
-            this.mcspPortDisplayLabel.TabIndex = 3;
-            this.mcspPortDisplayLabel.Text = "COM1";
-            this.mcspPortDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // mcspBaudRateDisplayLabel
-            // 
-            this.mcspBaudRateDisplayLabel.Location = new System.Drawing.Point(209, 29);
-            this.mcspBaudRateDisplayLabel.Name = "mcspBaudRateDisplayLabel";
-            this.mcspBaudRateDisplayLabel.Size = new System.Drawing.Size(48, 13);
-            this.mcspBaudRateDisplayLabel.TabIndex = 4;
-            this.mcspBaudRateDisplayLabel.Text = "9600";
-            this.mcspBaudRateDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // mcspParityDisplayLabel
-            // 
-            this.mcspParityDisplayLabel.Location = new System.Drawing.Point(295, 29);
-            this.mcspParityDisplayLabel.Name = "mcspParityDisplayLabel";
-            this.mcspParityDisplayLabel.Size = new System.Drawing.Size(39, 13);
-            this.mcspParityDisplayLabel.TabIndex = 5;
-            this.mcspParityDisplayLabel.Text = "None";
-            this.mcspParityDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // mcspDataBitsDisplayLabel
-            // 
-            this.mcspDataBitsDisplayLabel.Location = new System.Drawing.Point(263, 29);
-            this.mcspDataBitsDisplayLabel.Name = "mcspDataBitsDisplayLabel";
-            this.mcspDataBitsDisplayLabel.Size = new System.Drawing.Size(26, 13);
-            this.mcspDataBitsDisplayLabel.TabIndex = 6;
-            this.mcspDataBitsDisplayLabel.Text = "8";
-            this.mcspDataBitsDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // mcspStopBitsDisplayLabel
-            // 
-            this.mcspStopBitsDisplayLabel.Location = new System.Drawing.Point(340, 29);
-            this.mcspStopBitsDisplayLabel.Name = "mcspStopBitsDisplayLabel";
-            this.mcspStopBitsDisplayLabel.Size = new System.Drawing.Size(37, 13);
-            this.mcspStopBitsDisplayLabel.TabIndex = 7;
-            this.mcspStopBitsDisplayLabel.Text = "One";
-            this.mcspStopBitsDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // mcspConnectCheckBox
-            // 
-            this.mcspConnectCheckBox.AutoSize = true;
-            this.mcspConnectCheckBox.Location = new System.Drawing.Point(543, 28);
-            this.mcspConnectCheckBox.Name = "mcspConnectCheckBox";
-            this.mcspConnectCheckBox.Size = new System.Drawing.Size(66, 17);
-            this.mcspConnectCheckBox.TabIndex = 8;
-            this.mcspConnectCheckBox.Text = "Connect";
-            this.mcspConnectCheckBox.UseVisualStyleBackColor = true;
-            this.mcspConnectCheckBox.CheckedChanged += new System.EventHandler(this.mcspConnectCheckBox_CheckedChanged);
-            // 
-            // mcspRichTextBox
-            // 
-            this.mcspRichTextBox.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.mcspRichTextBox.Font = new System.Drawing.Font("Courier New", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mcspRichTextBox.Location = new System.Drawing.Point(0, 597);
-            this.mcspRichTextBox.Name = "mcspRichTextBox";
-            this.mcspRichTextBox.Size = new System.Drawing.Size(1008, 110);
-            this.mcspRichTextBox.TabIndex = 9;
-            this.mcspRichTextBox.Text = "";
-            // 
-            // mcspTimer
-            // 
-            this.mcspTimer.Tick += new System.EventHandler(this.mcspTimer_Tick);
-            // 
-            // outBufferDisplayLabel
-            // 
-            this.outBufferDisplayLabel.AutoSize = true;
-            this.outBufferDisplayLabel.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.outBufferDisplayLabel.Location = new System.Drawing.Point(13, 61);
-            this.outBufferDisplayLabel.Name = "outBufferDisplayLabel";
-            this.outBufferDisplayLabel.Size = new System.Drawing.Size(48, 16);
-            this.outBufferDisplayLabel.TabIndex = 11;
-            this.outBufferDisplayLabel.Text = "OUT: ";
-            // 
-            // inBufferDisplayLabel
-            // 
-            this.inBufferDisplayLabel.AutoSize = true;
-            this.inBufferDisplayLabel.Font = new System.Drawing.Font("Courier New", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.inBufferDisplayLabel.Location = new System.Drawing.Point(13, 74);
-            this.inBufferDisplayLabel.Name = "inBufferDisplayLabel";
-            this.inBufferDisplayLabel.Size = new System.Drawing.Size(40, 17);
-            this.inBufferDisplayLabel.TabIndex = 12;
-            this.inBufferDisplayLabel.Text = "IN: ";
+            this.displayUpdateTimer.Tick += new System.EventHandler(this.mcspTimer_Tick);
             // 
             // throttleSettingDisplayLabel
             // 
@@ -343,9 +254,10 @@
             // textMessageTextBox
             // 
             this.textMessageTextBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textMessageTextBox.Location = new System.Drawing.Point(16, 94);
+            this.textMessageTextBox.Location = new System.Drawing.Point(16, 126);
             this.textMessageTextBox.Multiline = true;
             this.textMessageTextBox.Name = "textMessageTextBox";
+            this.textMessageTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textMessageTextBox.Size = new System.Drawing.Size(434, 91);
             this.textMessageTextBox.TabIndex = 23;
             // 
@@ -431,28 +343,6 @@
             this.iMotorLabel.TabIndex = 2;
             this.iMotorLabel.Text = "Motor current";
             this.iMotorLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // 
-            // bytePositionLabel
-            // 
-            this.bytePositionLabel.AutoSize = true;
-            this.bytePositionLabel.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bytePositionLabel.Location = new System.Drawing.Point(13, 45);
-            this.bytePositionLabel.Name = "bytePositionLabel";
-            this.bytePositionLabel.Size = new System.Drawing.Size(808, 16);
-            this.bytePositionLabel.TabIndex = 25;
-            this.bytePositionLabel.Text = "POS: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 1" +
-    "9 1A 1B 1C 1D 1E 1F";
-            // 
-            // showAllBufferUpdatesCheckBox
-            // 
-            this.showAllBufferUpdatesCheckBox.AutoSize = true;
-            this.showAllBufferUpdatesCheckBox.Location = new System.Drawing.Point(615, 28);
-            this.showAllBufferUpdatesCheckBox.Name = "showAllBufferUpdatesCheckBox";
-            this.showAllBufferUpdatesCheckBox.Size = new System.Drawing.Size(137, 17);
-            this.showAllBufferUpdatesCheckBox.TabIndex = 26;
-            this.showAllBufferUpdatesCheckBox.Text = "Show all buffer updates";
-            this.showAllBufferUpdatesCheckBox.UseVisualStyleBackColor = true;
-            this.showAllBufferUpdatesCheckBox.CheckedChanged += new System.EventHandler(this.showAllBufferUpdatesCheckBox_CheckedChanged);
             // 
             // tRexAccelerometerPanel
             // 
@@ -632,13 +522,154 @@
             this.speed25Button.UseVisualStyleBackColor = true;
             this.speed25Button.Click += new System.EventHandler(this.speed25Button_Click);
             // 
+            // serialCommsDataPanel
+            // 
+            this.serialCommsDataPanel.Controls.Add(this.packetDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.commErrorDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.showAllBufferUpdatesCheckBox);
+            this.serialCommsDataPanel.Controls.Add(this.bytePositionLabel);
+            this.serialCommsDataPanel.Controls.Add(this.inBufferDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.outBufferDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.mcspStopBitsDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.mcspDataBitsDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.mcspParityDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.mcspBaudRateDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.mcspPortDisplayLabel);
+            this.serialCommsDataPanel.Controls.Add(this.label1);
+            this.serialCommsDataPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.serialCommsDataPanel.Location = new System.Drawing.Point(0, 607);
+            this.serialCommsDataPanel.Name = "serialCommsDataPanel";
+            this.serialCommsDataPanel.Size = new System.Drawing.Size(1008, 100);
+            this.serialCommsDataPanel.TabIndex = 49;
+            // 
+            // packetDisplayLabel
+            // 
+            this.packetDisplayLabel.AutoSize = true;
+            this.packetDisplayLabel.Font = new System.Drawing.Font("Courier New", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.packetDisplayLabel.Location = new System.Drawing.Point(12, 71);
+            this.packetDisplayLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.packetDisplayLabel.Name = "packetDisplayLabel";
+            this.packetDisplayLabel.Size = new System.Drawing.Size(40, 17);
+            this.packetDisplayLabel.TabIndex = 61;
+            this.packetDisplayLabel.Text = "PKT:";
+            // 
             // commErrorDisplayLabel
             // 
-            this.commErrorDisplayLabel.Location = new System.Drawing.Point(383, 29);
+            this.commErrorDisplayLabel.Location = new System.Drawing.Point(382, 9);
             this.commErrorDisplayLabel.Name = "commErrorDisplayLabel";
             this.commErrorDisplayLabel.Size = new System.Drawing.Size(154, 13);
-            this.commErrorDisplayLabel.TabIndex = 32;
+            this.commErrorDisplayLabel.TabIndex = 60;
             this.commErrorDisplayLabel.Text = "Not connected";
+            // 
+            // showAllBufferUpdatesCheckBox
+            // 
+            this.showAllBufferUpdatesCheckBox.AutoSize = true;
+            this.showAllBufferUpdatesCheckBox.Checked = true;
+            this.showAllBufferUpdatesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showAllBufferUpdatesCheckBox.Location = new System.Drawing.Point(614, 8);
+            this.showAllBufferUpdatesCheckBox.Name = "showAllBufferUpdatesCheckBox";
+            this.showAllBufferUpdatesCheckBox.Size = new System.Drawing.Size(137, 17);
+            this.showAllBufferUpdatesCheckBox.TabIndex = 59;
+            this.showAllBufferUpdatesCheckBox.Text = "Show all buffer updates";
+            this.showAllBufferUpdatesCheckBox.UseVisualStyleBackColor = true;
+            this.showAllBufferUpdatesCheckBox.CheckedChanged += new System.EventHandler(this.showAllBufferUpdatesCheckBox_CheckedChanged);
+            // 
+            // bytePositionLabel
+            // 
+            this.bytePositionLabel.AutoSize = true;
+            this.bytePositionLabel.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.bytePositionLabel.Location = new System.Drawing.Point(12, 25);
+            this.bytePositionLabel.Name = "bytePositionLabel";
+            this.bytePositionLabel.Size = new System.Drawing.Size(808, 16);
+            this.bytePositionLabel.TabIndex = 58;
+            this.bytePositionLabel.Text = "POS: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 1" +
+    "9 1A 1B 1C 1D 1E 1F";
+            // 
+            // inBufferDisplayLabel
+            // 
+            this.inBufferDisplayLabel.AutoSize = true;
+            this.inBufferDisplayLabel.Font = new System.Drawing.Font("Courier New", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.inBufferDisplayLabel.Location = new System.Drawing.Point(12, 54);
+            this.inBufferDisplayLabel.Name = "inBufferDisplayLabel";
+            this.inBufferDisplayLabel.Size = new System.Drawing.Size(40, 17);
+            this.inBufferDisplayLabel.TabIndex = 57;
+            this.inBufferDisplayLabel.Text = "IN: ";
+            // 
+            // outBufferDisplayLabel
+            // 
+            this.outBufferDisplayLabel.AutoSize = true;
+            this.outBufferDisplayLabel.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.outBufferDisplayLabel.Location = new System.Drawing.Point(12, 41);
+            this.outBufferDisplayLabel.Name = "outBufferDisplayLabel";
+            this.outBufferDisplayLabel.Size = new System.Drawing.Size(48, 16);
+            this.outBufferDisplayLabel.TabIndex = 56;
+            this.outBufferDisplayLabel.Text = "OUT: ";
+            // 
+            // mcspStopBitsDisplayLabel
+            // 
+            this.mcspStopBitsDisplayLabel.Location = new System.Drawing.Point(339, 9);
+            this.mcspStopBitsDisplayLabel.Name = "mcspStopBitsDisplayLabel";
+            this.mcspStopBitsDisplayLabel.Size = new System.Drawing.Size(37, 13);
+            this.mcspStopBitsDisplayLabel.TabIndex = 54;
+            this.mcspStopBitsDisplayLabel.Text = "One";
+            this.mcspStopBitsDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // mcspDataBitsDisplayLabel
+            // 
+            this.mcspDataBitsDisplayLabel.Location = new System.Drawing.Point(262, 9);
+            this.mcspDataBitsDisplayLabel.Name = "mcspDataBitsDisplayLabel";
+            this.mcspDataBitsDisplayLabel.Size = new System.Drawing.Size(26, 13);
+            this.mcspDataBitsDisplayLabel.TabIndex = 53;
+            this.mcspDataBitsDisplayLabel.Text = "8";
+            this.mcspDataBitsDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // mcspParityDisplayLabel
+            // 
+            this.mcspParityDisplayLabel.Location = new System.Drawing.Point(294, 9);
+            this.mcspParityDisplayLabel.Name = "mcspParityDisplayLabel";
+            this.mcspParityDisplayLabel.Size = new System.Drawing.Size(39, 13);
+            this.mcspParityDisplayLabel.TabIndex = 52;
+            this.mcspParityDisplayLabel.Text = "None";
+            this.mcspParityDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // mcspBaudRateDisplayLabel
+            // 
+            this.mcspBaudRateDisplayLabel.Location = new System.Drawing.Point(208, 9);
+            this.mcspBaudRateDisplayLabel.Name = "mcspBaudRateDisplayLabel";
+            this.mcspBaudRateDisplayLabel.Size = new System.Drawing.Size(48, 13);
+            this.mcspBaudRateDisplayLabel.TabIndex = 51;
+            this.mcspBaudRateDisplayLabel.Text = "9600";
+            this.mcspBaudRateDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // mcspPortDisplayLabel
+            // 
+            this.mcspPortDisplayLabel.Location = new System.Drawing.Point(154, 9);
+            this.mcspPortDisplayLabel.Name = "mcspPortDisplayLabel";
+            this.mcspPortDisplayLabel.Size = new System.Drawing.Size(48, 13);
+            this.mcspPortDisplayLabel.TabIndex = 50;
+            this.mcspPortDisplayLabel.Text = "COM1";
+            this.mcspPortDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(136, 13);
+            this.label1.TabIndex = 49;
+            this.label1.Text = "MRS Main Controller Serial:";
+            // 
+            // toggleDisplayUpdateTimerToolStripButton
+            // 
+            this.toggleDisplayUpdateTimerToolStripButton.CheckOnClick = true;
+            this.toggleDisplayUpdateTimerToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toggleDisplayUpdateTimerToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("toggleDisplayUpdateTimerToolStripButton.Image")));
+            this.toggleDisplayUpdateTimerToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toggleDisplayUpdateTimerToolStripButton.Name = "toggleDisplayUpdateTimerToolStripButton";
+            this.toggleDisplayUpdateTimerToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.toggleDisplayUpdateTimerToolStripButton.Text = "toggleDisplayUpdateTimerToolStripButton";
+            this.toggleDisplayUpdateTimerToolStripButton.ToolTipText = "Start/Stop display updates";
+            this.toggleDisplayUpdateTimerToolStripButton.Click += new System.EventHandler(this.toggleDisplayUpdateTimerToolStripButton_Click);
             // 
             // MRS1
             // 
@@ -646,14 +677,12 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(1008, 729);
-            this.Controls.Add(this.commErrorDisplayLabel);
+            this.Controls.Add(this.serialCommsDataPanel);
             this.Controls.Add(this.speed25Button);
             this.Controls.Add(this.speed50Button);
             this.Controls.Add(this.speed75Button);
             this.Controls.Add(this.speed100Button);
             this.Controls.Add(this.tRexAccelerometerPanel);
-            this.Controls.Add(this.showAllBufferUpdatesCheckBox);
-            this.Controls.Add(this.bytePositionLabel);
             this.Controls.Add(this.tRexStatusPanel);
             this.Controls.Add(this.textMessageTextBox);
             this.Controls.Add(this.rMotSpeedDisplayLabel);
@@ -666,16 +695,6 @@
             this.Controls.Add(this.centerSteeringButton);
             this.Controls.Add(this.turnRightButton);
             this.Controls.Add(this.turnLeftButton);
-            this.Controls.Add(this.inBufferDisplayLabel);
-            this.Controls.Add(this.outBufferDisplayLabel);
-            this.Controls.Add(this.mcspRichTextBox);
-            this.Controls.Add(this.mcspConnectCheckBox);
-            this.Controls.Add(this.mcspStopBitsDisplayLabel);
-            this.Controls.Add(this.mcspDataBitsDisplayLabel);
-            this.Controls.Add(this.mcspParityDisplayLabel);
-            this.Controls.Add(this.mcspBaudRateDisplayLabel);
-            this.Controls.Add(this.mcspPortDisplayLabel);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.MRS1MainToolStrip);
             this.Controls.Add(this.MRS1MainStatusStrip);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -693,6 +712,8 @@
             this.tRexAccelerometerPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.steeringPictureBox)).EndInit();
+            this.serialCommsDataPanel.ResumeLayout(false);
+            this.serialCommsDataPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -703,19 +724,9 @@
         private System.IO.Ports.SerialPort MRSMainControllerSerialPort;
         private System.Windows.Forms.StatusStrip MRS1MainStatusStrip;
         private System.Windows.Forms.ToolStrip MRS1MainToolStrip;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label mcspPortDisplayLabel;
-        private System.Windows.Forms.Label mcspBaudRateDisplayLabel;
-        private System.Windows.Forms.Label mcspParityDisplayLabel;
-        private System.Windows.Forms.Label mcspDataBitsDisplayLabel;
-        private System.Windows.Forms.Label mcspStopBitsDisplayLabel;
-        private System.Windows.Forms.CheckBox mcspConnectCheckBox;
-        private System.Windows.Forms.RichTextBox mcspRichTextBox;
-        private System.Windows.Forms.Timer mcspTimer;
-        private System.Windows.Forms.ToolStripButton printCommBufToolStripButton;
-        private System.Windows.Forms.ToolStripButton testCommsToolStripButton;
-        private System.Windows.Forms.Label outBufferDisplayLabel;
-        private System.Windows.Forms.Label inBufferDisplayLabel;
+        private System.Windows.Forms.Timer displayUpdateTimer;
+        private System.Windows.Forms.ToolStripButton serialConnectToolStripButton;
+        private System.Windows.Forms.ToolStripButton toggleSerialCommDataPanelToolStripButton;
         private System.Windows.Forms.Button turnLeftButton;
         private System.Windows.Forms.Button turnRightButton;
         private System.Windows.Forms.Button centerSteeringButton;
@@ -741,8 +752,6 @@
         private System.Windows.Forms.Label mALAbel;
         private System.Windows.Forms.Label vdcLabel;
         private System.Windows.Forms.PictureBox motorBatteryPictureBox;
-        private System.Windows.Forms.Label bytePositionLabel;
-        private System.Windows.Forms.CheckBox showAllBufferUpdatesCheckBox;
         private System.Windows.Forms.Panel tRexAccelerometerPanel;
         private System.Windows.Forms.Label trexAccelerometerPanelLabel;
         private System.Windows.Forms.Label tRexXAccelDisplayLabel;
@@ -753,7 +762,20 @@
         private System.Windows.Forms.Button speed75Button;
         private System.Windows.Forms.Button speed50Button;
         private System.Windows.Forms.Button speed25Button;
+        private System.Windows.Forms.Panel serialCommsDataPanel;
+        private System.Windows.Forms.Label packetDisplayLabel;
         private System.Windows.Forms.Label commErrorDisplayLabel;
+        private System.Windows.Forms.CheckBox showAllBufferUpdatesCheckBox;
+        private System.Windows.Forms.Label bytePositionLabel;
+        private System.Windows.Forms.Label inBufferDisplayLabel;
+        private System.Windows.Forms.Label outBufferDisplayLabel;
+        private System.Windows.Forms.Label mcspStopBitsDisplayLabel;
+        private System.Windows.Forms.Label mcspDataBitsDisplayLabel;
+        private System.Windows.Forms.Label mcspParityDisplayLabel;
+        private System.Windows.Forms.Label mcspBaudRateDisplayLabel;
+        private System.Windows.Forms.Label mcspPortDisplayLabel;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripButton toggleDisplayUpdateTimerToolStripButton;
     }
 }
 

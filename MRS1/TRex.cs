@@ -267,8 +267,8 @@ namespace MRS1
         {
             get 
             { 
-                return rEnc;
                 rEnc = (Int16)(StatusBuffer[(int)StatusBytes.REncHi] * 256 + StatusBuffer[(int)StatusBytes.REncLo]);
+                return rEnc;
             }
             set { rEnc = value; }
         }

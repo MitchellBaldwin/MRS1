@@ -1,4 +1,15 @@
-﻿using System;
+﻿/*
+ * Mobile Robot System Host Controller (MRS-HOST)
+ * RMB - 11 Jan 2016
+ * 
+ * 
+ * Test mode	(0x00)	Measures the position of a potentiometer and report it to back to the PC host
+ * TRex mode	(0x01)	TRex controlled over i2c bus
+ * RC mode		(0x02)	TRex controlled by RC radio
+ * 
+*/
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,31 +24,46 @@ namespace MRS1
 {
     public partial class MRS1 : Form
     {
-        // Defines
-        public const Byte CommStartByte = 0x0F;
-        
-        public const Byte TextMsgMsgType = 0x00;
+        #region Message type definitions
+        public const Byte CommFramingByte = 0x00;           // Identifies the end of a serial message 
+
+        public const Byte TextMsgMsgType = 0x00;            // Payload consists of a text message - bidirectional
         public const Byte SetModeMsgType = 0x01;
 
         public const Byte TRexCmdMsgType = 0x10;
         public const Byte TRexStatMsgType = 0x11;
-        
-        // Buffers for serial communication with MRS Main Controller
-        public const Byte COMM_BUFFER_SIZE = 32;
+
+        #endregion Message type definitions
+
+        // Buffers for serial communication with the embedded device
+        public const Byte PACKET_SIZE = 30;
+        public const Byte ENCODED_PACKET_SIZE = PACKET_SIZE + 1;
+        public const Byte COMM_BUFFER_SIZE = ENCODED_PACKET_SIZE + 1;
+
+        Byte[] packetBuffer = new Byte[PACKET_SIZE];
+        Byte[] encodedPacketBuffer = new Byte[ENCODED_PACKET_SIZE];
         Byte[] inBuffer = new Byte[COMM_BUFFER_SIZE];
         Byte[] outBuffer = new Byte[COMM_BUFFER_SIZE];
         Byte[] dummy = new Byte[1];
+
+        Byte receivedMessageType = 0xFF;
 
         TRex tRex = new TRex();
 
         ToolStripButton[] modeButtons = new ToolStripButton[3];
 
+        // Set the display update timer interval to 100 ms
+        public const int RESPONSE_TIMEOUT = 50; // Number of display update timer intervals to wait for a reply from the MRS-MCC
+        private int displayUpdatePeriod = 10;   // Sets the number of timer intervals between updates to the displays
+        private int displayUpdateTimerTicks = 0;           // Counter to implement the interval between display updates
+
+        #region Flags
         // Switch for displaying contents of commands sent to the MRS Main Controller
-        Boolean showAllMRSMCCommandBufferUpdates = false;
+        Boolean showAllCommandBufferUpdates = true;
         public Boolean ShowAllMRSMCCommandBufferUpdates
         {
-            get { return showAllMRSMCCommandBufferUpdates; }
-            set { showAllMRSMCCommandBufferUpdates = value; }
+            get { return showAllCommandBufferUpdates; }
+            set { showAllCommandBufferUpdates = value; }
         }
 
         // Switch or displaying contents of the communications buffer incoming from the MRS Main Controller
@@ -96,18 +122,17 @@ namespace MRS1
             set { newTRexMotorControllerCommand = value; }
         }
 
-        private int displayUpdatePeriod = 10;   // Sets the number of timer intervals between updates to the displays
-        private int displayCount = 0;           // Counter to implement the interval between display updates
-
         // Flag indicating a Motor Controller status message has been sent and we are awaiting the response
         //(used to detect a timeout when awaiting receipt of a status update from the Motor Controller)
-        Boolean mcStatusRequestSent = false;
-        public Boolean McStatusRequestSent
+        Boolean mrsmccStatusRequestPending = false;
+        public Boolean MRSMCCStatusRequestPending
         {
-            get { return mcStatusRequestSent; }
-            set { mcStatusRequestSent = value; }
+            get { return mrsmccStatusRequestPending; }
+            set { mrsmccStatusRequestPending = value; }
         }
+        #endregion Flags
 
+        #region Form level functions
         public MRS1()
         {
             InitializeComponent();
@@ -137,42 +162,141 @@ namespace MRS1
             Properties.Settings.Default.comPortTexrApplicationSetting = comPortToolStripComboBox.Text;
             Properties.Settings.Default.Save();
         }
+        #endregion Form level functions
 
-        private void mcspConnectCheckBox_CheckedChanged(object sender, EventArgs e)
+        #region Serial communications functions
+        // Serial port callback function to handle the receipt of messages from the Motor Controller
+        private void MRSMainControllerSerialPort_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
         {
-            if (mcspConnectCheckBox.Checked)
+
+            if (MRSMainControllerSerialPort.BytesToRead < COMM_BUFFER_SIZE)
             {
-                try
-                {
-                    mcspTimer.Enabled = true;
-                    MRSMainControllerSerialPort.Open();
-                }
-                catch (IOException ioe)
-                {
-                    Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
-                    mcspConnectCheckBox.Checked = false;
-                }
+                Console.WriteLine("False call to DataReceived");
+                return;
             }
-            else
+            try
             {
-                if (MRSMainControllerSerialPort.IsOpen)
+                MRSMainControllerSerialPort.Read(inBuffer, 0, COMM_BUFFER_SIZE);
+                commTimeoutErrorFlag = false;      // If no exception was thrown then we should have receiced a complete buffer (COMM_BUFFER_SIZE bits)
+
+                // Check that the first byte contains the CommStartByte
+                if (inBuffer[COMM_BUFFER_SIZE - 1] != CommFramingByte)
                 {
-                    MRSMainControllerSerialPort.Close();
-                    mcspTimer.Enabled = false;
+                    commFramingErrorFlag = true;
+                    Console.WriteLine("Serial port framing error");
+                    return;
                 }
+                else
+                {
+                    commFramingErrorFlag = false;
+                }
+
+                // A properly framed serial packet has arrived, so decode it
+                for (int i = 0; i < ENCODED_PACKET_SIZE; ++i)
+                {
+                    encodedPacketBuffer[i] = inBuffer[i];
+                }
+                packetBuffer = COBSCodec.decode(encodedPacketBuffer);
+
+                // Check that the checksums match
+                Byte checkSum = 0;
+                for (int i = 0; i < PACKET_SIZE - 1; ++i)
+                {
+                    checkSum += packetBuffer[i];
+                }
+                if (checkSum == packetBuffer[PACKET_SIZE - 1])
+                {
+                    commChecksumErrorFlag = false;
+                }
+                else
+                {
+                    commChecksumErrorFlag = true;
+                    Console.WriteLine("Serial port checksum error");
+                    return;
+                }
+
+                // If no errors then set flag indicating that a valid message has been received
+                mrsmcMessageReceived = true;
+                receivedMessageType = packetBuffer[0x00];
+            }
+            catch (System.TimeoutException)
+            {
+                commTimeoutErrorFlag = true;
+                Console.WriteLine("Serial port timeout");
+                mrsmcMessageReceived = false;
+            }
+            catch (IOException ioe)
+            {
+                Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
+                serialConnectToolStripButton.Checked = false;
+                toggleDisplayUpdateTimerToolStripButton.Checked = false;
+            }
+
+        }
+
+        // Helper function to format the outBuffer with a Motor Controller message / command
+        private void BuildCommMessage(Byte msgType, Byte[] buffer)
+        {
+            Byte checkSum = 0;
+
+            for (int i = 0; i < PACKET_SIZE; ++i)
+            {
+                packetBuffer[i] = 0;
+            }
+
+            packetBuffer[0] = msgType;
+            for (int i = 0; i < buffer.Length; ++i)
+            {
+                packetBuffer[1 + i] = buffer[i];
+                checkSum += buffer[i];
+            }
+            checkSum = 0x00;
+            for (int i = 0; i < PACKET_SIZE - 1; ++i)
+            {
+                checkSum += packetBuffer[i];
+            }
+            packetBuffer[PACKET_SIZE - 1] = checkSum;
+
+            encodedPacketBuffer = COBSCodec.encode(packetBuffer);
+            for (int i = 0; i < COMM_BUFFER_SIZE - 1; ++i)
+            {
+                outBuffer[i] = encodedPacketBuffer[i];
+            }
+            outBuffer[COMM_BUFFER_SIZE - 1] = 0x00;
+        }
+
+        // Helper function to send the contents of the outBuffer to the CLCPR Device
+        private void SendCommandMessage()
+        {
+            try
+            {
+                MRSMainControllerSerialPort.Write(outBuffer, 0, COMM_BUFFER_SIZE);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
+            }
+            if (ShowOutBufferUpdates)
+            {
+                DisplayOutBufferToConsole();
             }
         }
 
+        private void BuildAndSendCommandMessage(Byte msgType, Byte[] buffer)
+        {
+            BuildCommMessage(msgType, buffer);
+            SendCommandMessage();
+        }
+
+        
+        #endregion Serial communications functions
+
         private void mcspTimer_Tick(object sender, EventArgs e)
         {
-            if (ShowAllMRSMCCommandBufferUpdates)
-            {
-                DisplayCommBuffers();
-            }
-
+            #region Communication status display
             // Display communication error status
             commErrorDisplayLabel.ForeColor = Color.Black;
-            if (mcspConnectCheckBox.Checked)
+            if (serialConnectToolStripButton.Checked)
             {
                 commErrorDisplayLabel.Text = "Connected - no errors";
             }
@@ -203,19 +327,20 @@ namespace MRS1
                 commErrorDisplayLabel.ForeColor = Color.Red;
                 commErrorDisplayLabel.Text = "Serial port timeout";
             }
-            // Handle any new message from the MRS Master Controller
+            #endregion Communication status display
+
+            #region Handle any new message from the MRS Master Controller
             if (mrsmcMessageReceived)
             {
-                Byte mrsmcMessageType = inBuffer[0x01];
-                switch (mrsmcMessageType)
+                switch (receivedMessageType)
                 {
                     case TextMsgMsgType:
                         String message = "";
-                        for (int i = 2; i < COMM_BUFFER_SIZE - 1; ++i)
+                        for (int i = 1; i < PACKET_SIZE - 1; ++i)
                         {
-                            if (inBuffer[i] != 0x00)
+                            if (packetBuffer[i] != 0x00)
                             {
-                                message += (char)inBuffer[i];
+                                message += (char)packetBuffer[i];
                             }
                         }
                         textMessageTextBox.AppendText(message);
@@ -231,78 +356,65 @@ namespace MRS1
                         break;
 
                     case TRexStatMsgType:
-                        for (int i=0; i<TRex.TREX_STATUS_BUFFER_SIZE; ++i)
+                        for (int i = 0; i < TRex.TREX_STATUS_BUFFER_SIZE; ++i)
                         {
-                            tRex.StatusBuffer[i] = inBuffer[i + 2];
+                            tRex.StatusBuffer[i] = packetBuffer[i + 1];
                         }
                         if (ShowInBufferUpdates)
                         {
-                            DisplayInBuffer();
+                            DisplayInBufferToConsole();
                         }
-                        mcStatusRequestSent = false;
-                        // Displays will be updated below in this timer event handler
+                        mrsmccStatusRequestPending = false;
                         break;
 
                     default:
 
                         break;
                 }
-
+                
+                // Message handled; reset flag:
                 mrsmcMessageReceived = false;
-            }         // Serial Communication with Master Controller
 
-            // If a new motor controller command is not pending then request a motor controller status update
-            if (!newTRexMotorControllerCommand)
-            {
-                ++displayCount;
+            }                                                   // Serial Communication with Master Controller
+            #endregion Handle any new message from the MRS Master Controller
 
-                if (displayCount >= 10)
-                {
-                    if (mcStatusRequestSent)
-                    {
-                        commErrorDisplayLabel.ForeColor = Color.Orange;
-                        commErrorDisplayLabel.Text = "MC status update timeout";
-                        Console.WriteLine("MC status update timeout");
-                        mcStatusRequestSent = false;
-                    }
-                    else
-                    {
-                        BuildCommMessage(TRexStatMsgType, dummy);
-                        try
-                        {
-                            MRSMainControllerSerialPort.Write(outBuffer, 0, COMM_BUFFER_SIZE);
-                        }
-                        catch (InvalidOperationException ioe)
-                        {
-                            Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
-                        }
-                        mcStatusRequestSent = true;
-                    }
-                    displayCount = 0;
-                }
-            }
-
+            #region Scheduler
             // If any part of the command set for the motor controller has been updated then build a new message and send it
+            // Otherwise performother scheduled activities
             if (newTRexMotorControllerCommand)
             {
-                BuildCommMessage(TRexCmdMsgType, tRex.CommandBuffer);
-                try
-                {
-                    MRSMainControllerSerialPort.Write(outBuffer, 0, COMM_BUFFER_SIZE);
-                }
-                catch (InvalidOperationException ioe)
-                {
-                    Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
-                }
-                if (ShowOutBufferUpdates)
-                {
-                    DisplayOutBuffer();
-                }
+                BuildAndSendCommandMessage(TRexCmdMsgType, tRex.CommandBuffer);
                 newTRexMotorControllerCommand = false;
-                displayCount = 0;
+                displayUpdateTimerTicks = 0;
             }
-            
-            // Update motor control graphic display
+            else
+            {
+                ++displayUpdateTimerTicks;
+
+                if (!mrsmccStatusRequestPending)
+                {
+                    if (displayUpdateTimerTicks % displayUpdatePeriod == 0)
+                    {
+                        BuildAndSendCommandMessage(TRexStatMsgType, dummy);
+                        mrsmccStatusRequestPending = true;
+                    }
+                }
+                else
+                {
+                    if (displayUpdateTimerTicks >= RESPONSE_TIMEOUT)
+                    {
+                        commErrorDisplayLabel.ForeColor = Color.Orange;
+                        commErrorDisplayLabel.Text = "MRS-MCC status update timeout";
+                        Console.WriteLine("MRS-MCC status update timeout");
+                        mrsmccStatusRequestPending = false;
+                        displayUpdateTimerTicks = 0;
+                    }
+                }
+
+            }
+            #endregion Scheduler
+
+            #region Update graphic displays
             using (Graphics g = Graphics.FromImage(steeringPictureBox.Image))
             {
                 // Create pen & brush
@@ -322,8 +434,14 @@ namespace MRS1
                 g.FillPie(blackBrush, rect, startAngle, sweepAngle);
             }
             steeringPictureBox.Invalidate();
+            #endregion Update motor control graphic display
 
-            // Update motor controller data displays
+            #region Update numerical and text data displays
+            if (ShowAllMRSMCCommandBufferUpdates)
+            {
+                DisplayAllCommBuffersToGUI();
+            }
+
             throttleSettingDisplayLabel.Text = tRex.Throttle.ToString("000");
             lMotSpeedDisplayLabel.Text = tRex.LMotSpeed.ToString("000");
             rMotSpeedDisplayLabel.Text = tRex.RMotSpeed.ToString("000");
@@ -334,82 +452,12 @@ namespace MRS1
             tRexXAccelDisplayLabel.Text = "X: " + tRex.AccelX.ToString("###0");
             tRexYAccelDisplayLabel.Text = "Y: " + tRex.AccelY.ToString("###0");
             tRexZAccelDisplayLabel.Text = "Z: " + tRex.AccelZ.ToString("###0");
-
+            #endregion Update numerical and text data displays
         }
 
-        // Helper function to format the outBuffer with a Motor Controller message / command
-        private void BuildCommMessage(Byte msgType, Byte[] buffer)
-        {
-            Byte checkSum = 0;
-
-            for (int i = 0; i<COMM_BUFFER_SIZE; ++i)
-            {
-                outBuffer[i] = 0;
-            }
-
-            outBuffer[0] = CommStartByte;
-            outBuffer[1] = msgType;
-            checkSum = CommStartByte;
-            checkSum += msgType;
-            for (int i=0; i<buffer.Length; ++i)
-            {
-                outBuffer[2 + i] = buffer[i];
-                checkSum += buffer[i];
-            }
-            outBuffer[COMM_BUFFER_SIZE - 1] = checkSum;
-        }
-        
-        // Serial port callback function to handle the receipt of messages from the Motor Controller
-        private void MRSMainControllerSerialPort_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                MRSMainControllerSerialPort.Read(inBuffer, 0, COMM_BUFFER_SIZE);
-                commTimeoutErrorFlag = false;      // If no exception was thrown then we should have receiced a complete buffer (COMM_BUFFER_SIZE bits)
-
-                // Check that the first byte contains the CommStartByte
-                if (inBuffer[0x00] != CommStartByte)
-                {
-                    commFramingErrorFlag = true;
-                    Console.WriteLine("Serial port framing error");
-                    return;
-                }
-                else
-                {
-                    commFramingErrorFlag = false;
-                }
-
-                // Check that the checksums match
-                Byte checkSum = 0;
-                for (int i=0; i<COMM_BUFFER_SIZE-1; ++i)
-                {
-                    checkSum += inBuffer[i];
-                }
-                if (checkSum == inBuffer[COMM_BUFFER_SIZE-1])
-                {
-                    commChecksumErrorFlag = false;
-                }
-                else
-                {
-                    commChecksumErrorFlag = true;
-                    Console.WriteLine("Serial port checksum error");
-                    return;
-                }
-
-                // If no errors then set flag indicating that a valid message has been received
-                mrsmcMessageReceived = true;
-            }
-            catch (System.TimeoutException)
-            {
-                commTimeoutErrorFlag = true;
-                Console.WriteLine("Serial port timeout");
-                mrsmcMessageReceived = false;
-            }
-
-        }
-
-        // Display contents of both serial communiction buffers
-        private void DisplayCommBuffers()
+        #region Display functions
+        // Display contents of the serial communiction buffers
+        private void DisplayAllCommBuffersToGUI()
         {
             String CommBufStr = "OUT: ";
             for (int i = 0; i < COMM_BUFFER_SIZE; ++i)
@@ -426,10 +474,18 @@ namespace MRS1
                 if (i < inBuffer.Length) CommBufStr += " ";
             }
             inBufferDisplayLabel.Text = CommBufStr;
+
+            String PacketStr = "PKT: ";
+            for (int i = 0; i < PACKET_SIZE; ++i)
+            {
+                PacketStr += packetBuffer[i].ToString("X2");
+                if (i < packetBuffer.Length) PacketStr += " ";
+            }
+            packetDisplayLabel.Text = PacketStr;
         }
 
         // Display contents of the serial inBuffer
-        private void DisplayInBuffer()
+        private void DisplayInBufferToConsole()
         {
             String CommBufStr = "IN:  ";
             for (int i = 0; i < COMM_BUFFER_SIZE; ++i)
@@ -437,11 +493,12 @@ namespace MRS1
                 CommBufStr += inBuffer[i].ToString("X2");
                 if (i < inBuffer.Length) CommBufStr += " ";
             }
-            inBufferDisplayLabel.Text = CommBufStr;
+            //inBufferDisplayLabel.Text = CommBufStr;
+            Console.WriteLine(CommBufStr);
         }
 
         // Display contents of the serial outBuffer
-        private void DisplayOutBuffer()
+        private void DisplayOutBufferToConsole()
         {
             String CommBufStr = "OUT: ";
             for (int i = 0; i < COMM_BUFFER_SIZE; ++i)
@@ -449,69 +506,57 @@ namespace MRS1
                 CommBufStr += outBuffer[i].ToString("X2");
                 if (i < outBuffer.Length) CommBufStr += " ";
             }
-            outBufferDisplayLabel.Text = CommBufStr;
+            //outBufferDisplayLabel.Text = CommBufStr;
+            Console.WriteLine(CommBufStr);
         }
 
-        private void showAllBufferUpdatesCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            showAllMRSMCCommandBufferUpdates = showAllBufferUpdatesCheckBox.Checked;
-        }
+        #endregion Display functions
 
-        private void printCommBufToolStripButton_Click(object sender, EventArgs e)
+        #region Menu and Toolbar event handlers
+        private void serialConnectToolStripButton_Click(object sender, EventArgs e)
         {
-            if (printCommBufToolStripButton.Checked)
+            if (serialConnectToolStripButton.Checked)
             {
-                inBufferDisplayLabel.Visible = true;
-                outBufferDisplayLabel.Visible = true;
-                DisplayCommBuffers();
+                try
+                {
+                    MRSMainControllerSerialPort.Open();
+                    displayUpdateTimer.Enabled = true;
+                    toggleDisplayUpdateTimerToolStripButton.Checked = true;
+                }
+                catch (IOException ioe)
+                {
+                    Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
+                    serialConnectToolStripButton.Checked = false;
+                }
             }
             else
             {
-                inBufferDisplayLabel.Visible = false;
-                outBufferDisplayLabel.Visible = false;
+                if (MRSMainControllerSerialPort.IsOpen)
+                {
+                    MRSMainControllerSerialPort.Close();
+                    displayUpdateTimer.Enabled = false;
+                    toggleDisplayUpdateTimerToolStripButton.Checked = false;
+                }
             }
-            
         }
 
-        private void testCommsToolStripButton_Click(object sender, EventArgs e)
+        private void toggleSerialCommDataPanelToolStripButton_Click(object sender, EventArgs e)
         {
-            BuildCommMessage(TRexStatMsgType, dummy);
-            
-            if (!mcspConnectCheckBox.Checked)
-            {
-                mcspConnectCheckBox.Checked = true;
-            }
-
-            try
-            {
-                MRSMainControllerSerialPort.Write(outBuffer, 0, COMM_BUFFER_SIZE);
-            }
-            catch (InvalidOperationException ioe)
-            {
-                Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
-            }
-
-        }
-
-        private void comPortToolStripComboBox_TextUpdate(object sender, EventArgs e)
-        {
-
+            serialCommsDataPanel.Visible = toggleSerialCommDataPanelToolStripButton.Checked;
         }
 
         private void comPortToolStripComboBox_TextChanged(object sender, EventArgs e)
         {
-            Boolean wasOpen = false;
-
-            if (mcspConnectCheckBox.Checked)
+            if (MRSMainControllerSerialPort.IsOpen)
             {
-                wasOpen = true;
-                mcspConnectCheckBox.Checked = false;
+                MRSMainControllerSerialPort.Close();
+                serialConnectToolStripButton.Checked = false;
+                displayUpdateTimer.Enabled = false;
+                toggleDisplayUpdateTimerToolStripButton.Checked = false;
+                commErrorDisplayLabel.Text = " Not connected";
             }
             MRSMainControllerSerialPort.PortName = comPortToolStripComboBox.Text;
-            if (wasOpen)
-            {
-                mcspConnectCheckBox.Checked = true;
-            }
+            mcspPortDisplayLabel.Text = MRSMainControllerSerialPort.PortName;
         }
 
         private void modeToolStripButton_Click(object sender, EventArgs e)
@@ -522,19 +567,37 @@ namespace MRS1
                 if (tsb.Checked)
                 {
                     Byte[] mode = new Byte[1];
-                    mode[0] = Convert.ToByte(tsb.Tag.ToString());
-                    BuildCommMessage(SetModeMsgType, mode);
-                    try
-                    {
-                        MRSMainControllerSerialPort.Write(outBuffer, 0, COMM_BUFFER_SIZE);
-                    }
-                    catch (InvalidOperationException ioe)
-                    {
-                        Console.WriteLine(ioe.GetType().Name + ": " + ioe.Message);
-                    }
+                    String tagStr = tsb.Tag.ToString();
+                    mode[0] = Convert.ToByte(tagStr);
+                    BuildAndSendCommandMessage(SetModeMsgType, mode);
                 }
             }
         }
+
+        private void toggleDisplayUpdateTimerToolStripButton_Click(object sender, EventArgs e)
+        {
+            displayUpdateTimer.Enabled = toggleDisplayUpdateTimerToolStripButton.Checked;
+        }
+
+        private void showAllBufferUpdatesCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            showAllCommandBufferUpdates = showAllBufferUpdatesCheckBox.Checked;
+            if (showAllCommandBufferUpdates)
+            {
+                inBufferDisplayLabel.Visible = true;
+                outBufferDisplayLabel.Visible = true;
+                packetDisplayLabel.Visible = true;
+                DisplayAllCommBuffersToGUI();
+            }
+            else
+            {
+                inBufferDisplayLabel.Visible = false;
+                outBufferDisplayLabel.Visible = false;
+                packetDisplayLabel.Visible = false;
+            }
+        }
+
+        #endregion Menu and Toolbar event handlers
 
         #region Control yoke event handlers
 
@@ -612,6 +675,8 @@ namespace MRS1
 
         #endregion Control yoke event handlers
 
+
+        
 
     }
 }

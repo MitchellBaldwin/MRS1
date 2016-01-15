@@ -5,9 +5,9 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRS1", "MRS1\MRS1.csproj", "{4FBCD71B-58DC-4626-B4CF-B72F2255FB8A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MRSMaster", "..\..\Users\Mitchell\Documents\Arduino\MRSMaster\MRSMaster.vcxproj", "{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "i2cScanner", "..\..\Users\Mitchell\Documents\Arduino\i2cScanner\i2cScanner.vcxproj", "{3F3C8736-50C8-4140-800C-8BEFABC8C697}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MRSMaster", "MRSMaster\MRSMaster.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,16 +29,6 @@ Global
 		{4FBCD71B-58DC-4626-B4CF-B72F2255FB8A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4FBCD71B-58DC-4626-B4CF-B72F2255FB8A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4FBCD71B-58DC-4626-B4CF-B72F2255FB8A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Debug|Win32.Build.0 = Debug|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Release|Any CPU.ActiveCfg = Release|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Release|Win32.ActiveCfg = Release|Win32
-		{1846DFCE-A7AF-4B65-89DE-0C9A1516FE49}.Release|Win32.Build.0 = Release|Win32
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -49,6 +39,16 @@ Global
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Release|Win32.ActiveCfg = Release|Win32
 		{3F3C8736-50C8-4140-800C-8BEFABC8C697}.Release|Win32.Build.0 = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Win32.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Any CPU.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Win32.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

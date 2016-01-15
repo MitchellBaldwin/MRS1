@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="COBSCodec.cs" />
     <Compile Include="MRS1Main.cs">
       <SubType>Form</SubType>
     </Compile>
