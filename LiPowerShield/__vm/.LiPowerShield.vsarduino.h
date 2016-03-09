@@ -16,7 +16,7 @@
 #define ARDUINO 10604
 #define ARDUINO_AVR_UNO
 #define ARDUINO_ARCH_AVR
-#define __cplusplus
+#define __cplusplus 201103L
 #define __AVR__
 #define __inline__
 #define __asm__(x)
@@ -84,10 +84,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portOutputRegister(P)
 #define portInputRegister(P)
 #define portModeRegister(P)
-#include <..\MRSMaster\MRSMaster.ino>
-#include <..\MRSMaster\CommandHandlers.ino>
-#include <..\MRSMaster\MasterReceive.ino>
-#include <..\MRSMaster\MasterSend.ino>
-#include <..\MRSMaster\SendTextMessage.ino>
-#include <..\MRSMaster\SerialComms.ino>
+#include <..\LiPowerShield\LiPowerShield.ino>
 #endif
