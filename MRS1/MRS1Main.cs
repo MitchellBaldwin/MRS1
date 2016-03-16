@@ -32,11 +32,15 @@ namespace MRS1
 
         public const Byte TRexCmdMsgType = 0x10;
         public const Byte TRexStatMsgType = 0x11;
+        public const Byte PCMCmdMsgType = 0x12;
+        public const Byte PCMStatMsgType = 0x13;
+        public const Byte PCMQuickStart = 0x014;
 
         #endregion Message type definitions
 
         // Buffers for serial communication with the embedded device
-        public const Byte PACKET_SIZE = 30;
+        public const Byte PACKET_SIZE = 30;                             // Includes command byte, so maximum payload
+                                                                        // size is PACKET_SIZE - 1
         public const Byte ENCODED_PACKET_SIZE = PACKET_SIZE + 1;
         public const Byte COMM_BUFFER_SIZE = ENCODED_PACKET_SIZE + 1;
 

@@ -58,6 +58,7 @@
     <Compile Include="MRS1Main.Designer.cs">
       <DependentUpon>MRS1Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="PowerControlModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TRex.cs" />
