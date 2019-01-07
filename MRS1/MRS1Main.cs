@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.Design;
 using System.IO;
 
 namespace MRS1
@@ -57,9 +58,14 @@ namespace MRS1
         ToolStripButton[] modeButtons = new ToolStripButton[3];
 
         // Set the display update timer interval to 100 ms
-        public const int RESPONSE_TIMEOUT = 50; // Number of display update timer intervals to wait for a reply from the MRS-MCC
-        private int displayUpdatePeriod = 10;   // Sets the number of timer intervals between updates to the displays
-        private int displayUpdateTimerTicks = 0;           // Counter to implement the interval between display updates
+        public const int RESPONSE_TIMEOUT = 50;     // Number of display update timer intervals to wait for a reply from the MRS-MCC
+        private int displayUpdatePeriod = 10;       // Sets the number of timer intervals between updates to the displays
+        private int displayUpdateTimerTicks = 0;    // Counter to implement the interval between display updates
+
+        private float heading = 0.0F;
+        public float Heading { get => heading; set => heading = value; }
+
+        public Point PositionOnMap;
 
         #region Flags
         // Switch for displaying contents of commands sent to the MRS Main Controller
@@ -134,12 +140,14 @@ namespace MRS1
             get { return mrsmccStatusRequestPending; }
             set { mrsmccStatusRequestPending = value; }
         }
+
         #endregion Flags
 
         #region Form level functions
         public MRS1()
         {
             InitializeComponent();
+
         }
 
         private void MRS1_Load(object sender, EventArgs e)
@@ -159,6 +167,21 @@ namespace MRS1
             modeButtons[0] = testToolStripButton;
             modeButtons[1] = i2cToolStripButton;
             modeButtons[2] = rcToolStripButton;
+
+            Point pos = this.PointToScreen(HDGDisplayLabel.Location);
+            Console.WriteLine(pos);
+            pos = MFCD1PictureBox.PointToClient(pos);
+            Console.WriteLine(pos);
+            HDGDisplayLabel.Parent = MFCD1PictureBox;
+            HDGDisplayLabel.Location = pos;
+            HDGDisplayLabel.BackColor = Color.Transparent;
+            HDGDisplayLabel.Text = Heading.ToString("000");
+
+            MFCD2HDGDisplayLabel.Parent = MFCD2PictureBox;
+
+            PositionOnMap.X = MFCD1PictureBox.Image.Width / 2;
+            PositionOnMap.Y = MFCD1PictureBox.Image.Height / 2;
+
         }
 
         private void MRS1_FormClosing(object sender, FormClosingEventArgs e)
@@ -438,6 +461,19 @@ namespace MRS1
                 g.FillPie(blackBrush, rect, startAngle, sweepAngle);
             }
             steeringPictureBox.Invalidate();
+
+            // Update MFCD1
+            if (Heading < 360.0F)
+            {
+                Heading += 1.0F;
+            }
+            else
+            {
+                Heading = 0.0F;
+            }
+            MFCD1PictureBox.Invalidate();
+            MFCD2PictureBox.Invalidate();
+
             #endregion Update motor control graphic display
 
             #region Update numerical and text data displays
@@ -677,10 +713,37 @@ namespace MRS1
             newTRexMotorControllerCommand = true;
         }
 
+
+
+
         #endregion Control yoke event handlers
 
+        private void OSB1_Click(object sender, EventArgs e)
+        {
+            if (MFCD2PictureBox.SizeMode == PictureBoxSizeMode.CenterImage)
+            {
+                MFCD2PictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            }
+            else
+            {
+                MFCD2PictureBox.SizeMode = PictureBoxSizeMode.CenterImage;
+            }
+        }
 
-        
+        private void MFCD1PictureBox_Paint(object sender, PaintEventArgs e)
+        {
 
+        }
+
+        private void MFCD2PictureBox_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.TranslateTransform(MFCD2PictureBox.Width / 2, MFCD2PictureBox.Height / 2);
+            g.RotateTransform(-Heading);
+            //g.TranslateTransform(-PositionOnMap.X, -PositionOnMap.Y);
+            g.DrawImage(MFCD1PictureBox.Image, -PositionOnMap.X, -PositionOnMap.Y);
+
+            MFCD2HDGDisplayLabel.Text = Heading.ToString("000");
+        }
     }
 }
