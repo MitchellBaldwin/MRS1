@@ -36,13 +36,15 @@ namespace Test
             this.ClientSize = new Size(HeadingUpPictureBox.Right + 10, HeadingUpPictureBox.Bottom + 10);
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        private void TestGfx_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (MapImage != null)
                 MapImage.Dispose();
+            if (MapBitmap != null)
+                MapBitmap.Dispose();
         }
 
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        private void TestGfx_KeyDown(object sender, KeyEventArgs e)
         {
             const float MoveSpeed = 6.0f;
 
@@ -75,7 +77,7 @@ namespace Test
         // Display the map in a "North up" orientation with a carrat at the center indication the heading
         private void NorthUpPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            if (MapImage != null)
+            if (MapBitmap != null)
             {
                 e.Graphics.ResetTransform();
 
@@ -89,31 +91,41 @@ namespace Test
 
                 e.Graphics.DrawImage(MapBitmap, NorthUpPictureBox.Width / 2, NorthUpPictureBox.Height / 2);
 
-                // Construct a new transform to display a carrat indicating present heading
+                //// Construct a new transform to display a carrat indicating present heading
 
-                transformMatrix = new Matrix();
+                //transformMatrix = new Matrix();
 
-                transformMatrix.Translate(NorthUpPictureBox.Width / 2, NorthUpPictureBox.Height / 2);
-                transformMatrix.RotateAt(-trueHeading, new PointF(20, 20));
+                //transformMatrix.Translate(NorthUpPictureBox.Width / 2, NorthUpPictureBox.Height / 2);
+                //transformMatrix.RotateAt(-trueHeading, new PointF(20, 20));
 
-                e.Graphics.Transform = transformMatrix;
+                //e.Graphics.Transform = transformMatrix;
 
-                e.Graphics.DrawString("^", new Font(DefaultFont.FontFamily, 40), Brushes.Black, 0, 0);
+                //e.Graphics.DrawString("^", new Font(DefaultFont.FontFamily, 40), Brushes.Black, 0, 0);
 
-                //Draw Cross
-
+                // Draw Cross
                 e.Graphics.ResetTransform();
                 Rectangle rc = NorthUpPictureBox.ClientRectangle;
+                //e.Graphics.DrawLine(Pens.Red, rc.Width / 2, rc.Height / 2 + 10, rc.Width / 2, rc.Height / 2 - 10);
+                //e.Graphics.DrawLine(Pens.Red, rc.Width / 2 + 10, rc.Height / 2, rc.Width / 2 - 10, rc.Height / 2);
 
-                e.Graphics.DrawLine(Pens.Red, rc.Width / 2, rc.Height / 2 + 10, rc.Width / 2, rc.Height / 2 - 10);
-                e.Graphics.DrawLine(Pens.Red, rc.Width / 2 + 10, rc.Height / 2, rc.Width / 2 - 10, rc.Height / 2);
-
+                // Test drawing cross by constructing the cross image on a new bitmap and overlaying to the map view
+                Bitmap overlay = new Bitmap(rc.Width, rc.Height);
+                using (Graphics g = Graphics.FromImage(overlay))
+                {
+                    transformMatrix = new Matrix();
+                    transformMatrix.RotateAt(-trueHeading, new PointF(rc.Width / 2, rc.Height / 2));
+                    g.Transform = transformMatrix;
+                    g.DrawLine(Pens.Red, rc.Width / 2, rc.Height / 2 + 10, rc.Width / 2, rc.Height / 2 - 10);
+                    g.DrawLine(Pens.Red, rc.Width / 2 + 10, rc.Height / 2, rc.Width / 2 - 10, rc.Height / 2);
+                }
+                e.Graphics.DrawImage(overlay, new PointF());
+                overlay.Dispose();
             }
         }
 
         private void HeadingUpPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            if (MapImage != null)
+            if (MapBitmap != null)
             {
                 e.Graphics.ResetTransform();
 
@@ -137,7 +149,7 @@ namespace Test
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void TestGfx_Load(object sender, EventArgs e)
         {
             try
             {

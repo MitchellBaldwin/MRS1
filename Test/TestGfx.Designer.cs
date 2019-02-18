@@ -37,9 +37,9 @@
             this.ClientSize = new System.Drawing.Size(278, 244);
             this.Name = "TestGfx";
             this.Text = "Test Grafics";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.TestGfx_FormClosed);
+            this.Load += new System.EventHandler(this.TestGfx_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TestGfx_KeyDown);
             this.ResumeLayout(false);
 
         }

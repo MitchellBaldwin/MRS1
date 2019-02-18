@@ -81,8 +81,6 @@
             this.mcspPortDisplayLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.OSB1 = new System.Windows.Forms.Button();
-            this.HDGDisplayLabel = new System.Windows.Forms.Label();
-            this.MFCD1PictureBox = new System.Windows.Forms.PictureBox();
             this.stopButton = new System.Windows.Forms.Button();
             this.throttleBackButton = new System.Windows.Forms.Button();
             this.throttleForwardButton = new System.Windows.Forms.Button();
@@ -91,15 +89,18 @@
             this.turnRightButton = new System.Windows.Forms.Button();
             this.turnLeftButton = new System.Windows.Forms.Button();
             this.MFCD2Panel = new System.Windows.Forms.Panel();
+            this.OSB1Label = new System.Windows.Forms.Label();
             this.MFCD2HDGDisplayLabel = new System.Windows.Forms.Label();
             this.MFCD2PictureBox = new System.Windows.Forms.PictureBox();
+            this.OSB2 = new System.Windows.Forms.Button();
+            this.OSB2Label = new System.Windows.Forms.Label();
+            this.CoordinatesDisplayLabel = new System.Windows.Forms.Label();
             this.MRS1MainToolStrip.SuspendLayout();
             this.tRexStatusPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.motorBatteryPictureBox)).BeginInit();
             this.tRexAccelerometerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.serialCommsDataPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MFCD1PictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.steeringPictureBox)).BeginInit();
             this.MFCD2Panel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MFCD2PictureBox)).BeginInit();
@@ -660,34 +661,12 @@
             // 
             // OSB1
             // 
-            this.OSB1.Location = new System.Drawing.Point(782, 49);
+            this.OSB1.Location = new System.Drawing.Point(728, 49);
             this.OSB1.Name = "OSB1";
             this.OSB1.Size = new System.Drawing.Size(60, 55);
             this.OSB1.TabIndex = 53;
             this.OSB1.UseVisualStyleBackColor = true;
             this.OSB1.Click += new System.EventHandler(this.OSB1_Click);
-            // 
-            // HDGDisplayLabel
-            // 
-            this.HDGDisplayLabel.AutoSize = true;
-            this.HDGDisplayLabel.BackColor = System.Drawing.Color.Magenta;
-            this.HDGDisplayLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.HDGDisplayLabel.ForeColor = System.Drawing.Color.Black;
-            this.HDGDisplayLabel.Location = new System.Drawing.Point(242, 110);
-            this.HDGDisplayLabel.Name = "HDGDisplayLabel";
-            this.HDGDisplayLabel.Size = new System.Drawing.Size(49, 20);
-            this.HDGDisplayLabel.TabIndex = 56;
-            this.HDGDisplayLabel.Text = "HDG";
-            // 
-            // MFCD1PictureBox
-            // 
-            this.MFCD1PictureBox.Image = global::MRS1.Properties.Resources.MRC_42085H_UTM_16N_N_4756980_E_609580_NAD83_4m;
-            this.MFCD1PictureBox.Location = new System.Drawing.Point(13, 110);
-            this.MFCD1PictureBox.Name = "MFCD1PictureBox";
-            this.MFCD1PictureBox.Size = new System.Drawing.Size(520, 437);
-            this.MFCD1PictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.MFCD1PictureBox.TabIndex = 55;
-            this.MFCD1PictureBox.TabStop = false;
             // 
             // stopButton
             // 
@@ -767,6 +746,9 @@
             // MFCD2Panel
             // 
             this.MFCD2Panel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.MFCD2Panel.Controls.Add(this.CoordinatesDisplayLabel);
+            this.MFCD2Panel.Controls.Add(this.OSB2Label);
+            this.MFCD2Panel.Controls.Add(this.OSB1Label);
             this.MFCD2Panel.Controls.Add(this.MFCD2HDGDisplayLabel);
             this.MFCD2Panel.Controls.Add(this.MFCD2PictureBox);
             this.MFCD2Panel.Location = new System.Drawing.Point(620, 110);
@@ -774,18 +756,31 @@
             this.MFCD2Panel.Size = new System.Drawing.Size(800, 480);
             this.MFCD2Panel.TabIndex = 57;
             // 
+            // OSB1Label
+            // 
+            this.OSB1Label.BackColor = System.Drawing.Color.Transparent;
+            this.OSB1Label.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.OSB1Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OSB1Label.ForeColor = System.Drawing.Color.Green;
+            this.OSB1Label.Location = new System.Drawing.Point(108, 11);
+            this.OSB1Label.Name = "OSB1Label";
+            this.OSB1Label.Size = new System.Drawing.Size(60, 22);
+            this.OSB1Label.TabIndex = 59;
+            this.OSB1Label.Text = "TUP";
+            this.OSB1Label.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // MFCD2HDGDisplayLabel
             // 
-            this.MFCD2HDGDisplayLabel.AutoSize = true;
             this.MFCD2HDGDisplayLabel.BackColor = System.Drawing.Color.Transparent;
             this.MFCD2HDGDisplayLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.MFCD2HDGDisplayLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MFCD2HDGDisplayLabel.ForeColor = System.Drawing.Color.Black;
-            this.MFCD2HDGDisplayLabel.Location = new System.Drawing.Point(376, 0);
+            this.MFCD2HDGDisplayLabel.ForeColor = System.Drawing.Color.Green;
+            this.MFCD2HDGDisplayLabel.Location = new System.Drawing.Point(370, 11);
             this.MFCD2HDGDisplayLabel.Name = "MFCD2HDGDisplayLabel";
-            this.MFCD2HDGDisplayLabel.Size = new System.Drawing.Size(51, 22);
+            this.MFCD2HDGDisplayLabel.Size = new System.Drawing.Size(60, 22);
             this.MFCD2HDGDisplayLabel.TabIndex = 57;
             this.MFCD2HDGDisplayLabel.Text = "HDG";
+            this.MFCD2HDGDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // MFCD2PictureBox
             // 
@@ -797,15 +792,47 @@
             this.MFCD2PictureBox.TabStop = false;
             this.MFCD2PictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.MFCD2PictureBox_Paint);
             // 
+            // OSB2
+            // 
+            this.OSB2.Location = new System.Drawing.Point(810, 49);
+            this.OSB2.Name = "OSB2";
+            this.OSB2.Size = new System.Drawing.Size(60, 55);
+            this.OSB2.TabIndex = 58;
+            this.OSB2.UseVisualStyleBackColor = true;
+            // 
+            // OSB2Label
+            // 
+            this.OSB2Label.BackColor = System.Drawing.Color.Transparent;
+            this.OSB2Label.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.OSB2Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OSB2Label.ForeColor = System.Drawing.Color.Green;
+            this.OSB2Label.Location = new System.Drawing.Point(190, 11);
+            this.OSB2Label.Name = "OSB2Label";
+            this.OSB2Label.Size = new System.Drawing.Size(60, 22);
+            this.OSB2Label.TabIndex = 60;
+            this.OSB2Label.Text = "POS";
+            this.OSB2Label.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // CoordinatesDisplayLabel
+            // 
+            this.CoordinatesDisplayLabel.BackColor = System.Drawing.Color.Transparent;
+            this.CoordinatesDisplayLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CoordinatesDisplayLabel.ForeColor = System.Drawing.Color.Green;
+            this.CoordinatesDisplayLabel.Location = new System.Drawing.Point(160, 364);
+            this.CoordinatesDisplayLabel.Name = "CoordinatesDisplayLabel";
+            this.CoordinatesDisplayLabel.Size = new System.Drawing.Size(480, 22);
+            this.CoordinatesDisplayLabel.TabIndex = 61;
+            this.CoordinatesDisplayLabel.Text = "Coordinates";
+            this.CoordinatesDisplayLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // MRS1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(1512, 1122);
+            this.Controls.Add(this.OSB2);
             this.Controls.Add(this.OSB1);
-            this.Controls.Add(this.HDGDisplayLabel);
-            this.Controls.Add(this.MFCD1PictureBox);
             this.Controls.Add(this.serialCommsDataPanel);
             this.Controls.Add(this.speed25Button);
             this.Controls.Add(this.speed50Button);
@@ -833,6 +860,7 @@
             this.Name = "MRS1";
             this.Text = "MRS1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MRS1_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MRS1_FormClosed);
             this.Load += new System.EventHandler(this.MRS1_Load);
             this.MRS1MainToolStrip.ResumeLayout(false);
             this.MRS1MainToolStrip.PerformLayout();
@@ -844,10 +872,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.serialCommsDataPanel.ResumeLayout(false);
             this.serialCommsDataPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MFCD1PictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.steeringPictureBox)).EndInit();
             this.MFCD2Panel.ResumeLayout(false);
-            this.MFCD2Panel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MFCD2PictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -913,11 +939,13 @@
         private System.Windows.Forms.ToolStripButton toggleDisplayUpdateTimerToolStripButton;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.Button OSB1;
-        private System.Windows.Forms.PictureBox MFCD1PictureBox;
-        private System.Windows.Forms.Label HDGDisplayLabel;
         private System.Windows.Forms.Panel MFCD2Panel;
         private System.Windows.Forms.Label MFCD2HDGDisplayLabel;
         private System.Windows.Forms.PictureBox MFCD2PictureBox;
+        private System.Windows.Forms.Label OSB1Label;
+        private System.Windows.Forms.Label OSB2Label;
+        private System.Windows.Forms.Button OSB2;
+        private System.Windows.Forms.Label CoordinatesDisplayLabel;
     }
 }
 

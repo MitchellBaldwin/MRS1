@@ -14,12 +14,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using System.IO;
+using System.Reflection;
 
 namespace MRS1
 {
@@ -62,10 +64,14 @@ namespace MRS1
         private int displayUpdatePeriod = 10;       // Sets the number of timer intervals between updates to the displays
         private int displayUpdateTimerTicks = 0;    // Counter to implement the interval between display updates
 
-        private float heading = 0.0F;
-        public float Heading { get => heading; set => heading = value; }
+        private float trueHeading = 0.0F;
+        public float TrueHeading { get => trueHeading; set => trueHeading = value; }
 
-        public Point PositionOnMap;
+        public PointF PixelPositionOnMap = new PointF(640.0F, 640.0F);
+        public CoordinateSharp.Coordinate MapCenter;
+
+        private Bitmap MapBitmap = null;
+        private MapOrientationType MapOrientation = MapOrientationType.TrackUp;
 
         #region Flags
         // Switch for displaying contents of commands sent to the MRS Main Controller
@@ -123,7 +129,7 @@ namespace MRS1
             get { return commChecksumErrorFlag; }
             set { commChecksumErrorFlag = value; }
         }
-        
+
         // Flag indicating there is a new TRex motor controller command
         Boolean newTRexMotorControllerCommand = false;
         public Boolean NewTRexMotorControllerCommand
@@ -168,19 +174,28 @@ namespace MRS1
             modeButtons[1] = i2cToolStripButton;
             modeButtons[2] = rcToolStripButton;
 
-            Point pos = this.PointToScreen(HDGDisplayLabel.Location);
-            Console.WriteLine(pos);
-            pos = MFCD1PictureBox.PointToClient(pos);
-            Console.WriteLine(pos);
-            HDGDisplayLabel.Parent = MFCD1PictureBox;
-            HDGDisplayLabel.Location = pos;
-            HDGDisplayLabel.BackColor = Color.Transparent;
-            HDGDisplayLabel.Text = Heading.ToString("000");
-
+            CoordinatesDisplayLabel.Parent = MFCD2PictureBox;
             MFCD2HDGDisplayLabel.Parent = MFCD2PictureBox;
+            OSB1Label.Parent = MFCD2PictureBox;
+            OSB2Label.Parent = MFCD2PictureBox;
 
-            PositionOnMap.X = MFCD1PictureBox.Image.Width / 2;
-            PositionOnMap.Y = MFCD1PictureBox.Image.Height / 2;
+            MapBitmap = Properties.Resources.MRC_42085H_UTM_16N_N_4756980_E_609580_NAD83_4m;
+            MapBitmap.SetResolution(96, 96);
+
+            MapCenter = new CoordinateSharp.Coordinate(42.957790, -85.656370, DateTime.UtcNow);
+
+            using (Graphics g = Graphics.FromImage(MapBitmap))
+            {
+                using (Pen BluePen = new Pen(Color.Blue, 3))
+                {
+                    g.DrawLine(BluePen, MapBitmap.Width / 2, MapBitmap.Height / 2 + 10, MapBitmap.Width / 2, MapBitmap.Height / 2 - 10);
+                    g.DrawLine(BluePen, MapBitmap.Width / 2 + 10, MapBitmap.Height / 2, MapBitmap.Width / 2 - 10, MapBitmap.Height / 2);
+                }
+            }
+
+
+            // Test loading map from resources:
+            //MFCD2PictureBox.Image = MapBitmap;
 
         }
 
@@ -189,6 +204,14 @@ namespace MRS1
             Properties.Settings.Default.comPortTexrApplicationSetting = comPortToolStripComboBox.Text;
             Properties.Settings.Default.Save();
         }
+
+        private void MRS1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (MapBitmap != null)
+                MapBitmap.Dispose();
+
+        }
+
         #endregion Form level functions
 
         #region Serial communications functions
@@ -315,7 +338,7 @@ namespace MRS1
             SendCommandMessage();
         }
 
-        
+
         #endregion Serial communications functions
 
         private void mcspTimer_Tick(object sender, EventArgs e)
@@ -398,7 +421,7 @@ namespace MRS1
 
                         break;
                 }
-                
+
                 // Message handled; reset flag:
                 mrsmcMessageReceived = false;
 
@@ -462,19 +485,25 @@ namespace MRS1
             }
             steeringPictureBox.Invalidate();
 
-            // Update MFCD1
-            if (Heading < 360.0F)
+            // Simulate movement across map:
+            TrueHeading += tRex.Steering;
+            if (TrueHeading > 360.0F)
             {
-                Heading += 1.0F;
+                TrueHeading = TrueHeading -= 360F;
             }
-            else
+            else if (TrueHeading < 0.0F)
             {
-                Heading = 0.0F;
+                TrueHeading = TrueHeading += 360F;
             }
-            MFCD1PictureBox.Invalidate();
+            MFCD2HDGDisplayLabel.Text = TrueHeading.ToString("000");
+
+            PixelPositionOnMap = new PointF(PixelPositionOnMap.X - (float)Math.Sin(-trueHeading / 180 * Math.PI) * tRex.Throttle, PixelPositionOnMap.Y - (float)Math.Cos(-trueHeading / 180 * Math.PI) * tRex.Throttle);
+            CoordinatesDisplayLabel.Text = MapCenter.MGRS.ToString();
+
+            // Update MFCD2 graphics displays
             MFCD2PictureBox.Invalidate();
 
-            #endregion Update motor control graphic display
+            #endregion Update graphic displays
 
             #region Update numerical and text data displays
             if (ShowAllMRSMCCommandBufferUpdates)
@@ -506,7 +535,7 @@ namespace MRS1
                 if (i < outBuffer.Length) CommBufStr += " ";
             }
             outBufferDisplayLabel.Text = CommBufStr;
-            
+
             CommBufStr = "IN:  ";
             for (int i = 0; i < COMM_BUFFER_SIZE; ++i)
             {
@@ -720,30 +749,94 @@ namespace MRS1
 
         private void OSB1_Click(object sender, EventArgs e)
         {
-            if (MFCD2PictureBox.SizeMode == PictureBoxSizeMode.CenterImage)
+            // Step through available map orientations
+            if (MapOrientation < MapOrientationType.MagNUp)
             {
-                MFCD2PictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+                MapOrientation = ++MapOrientation;
             }
             else
             {
-                MFCD2PictureBox.SizeMode = PictureBoxSizeMode.CenterImage;
+                MapOrientation = MapOrientationType.TrackUp;
             }
-        }
 
-        private void MFCD1PictureBox_Paint(object sender, PaintEventArgs e)
-        {
-
+            // Update associated OSB label
+            switch (MapOrientation)
+            {
+                case MapOrientationType.TrackUp:
+                    OSB1Label.Text = "TUP";
+                    break;
+                case MapOrientationType.NorthUp:
+                    OSB1Label.Text = "NUP";
+                    break;
+                case MapOrientationType.MagNUp:
+                    OSB1Label.Text = "MUP";
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void MFCD2PictureBox_Paint(object sender, PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
-            g.TranslateTransform(MFCD2PictureBox.Width / 2, MFCD2PictureBox.Height / 2);
-            g.RotateTransform(-Heading);
-            //g.TranslateTransform(-PositionOnMap.X, -PositionOnMap.Y);
-            g.DrawImage(MFCD1PictureBox.Image, -PositionOnMap.X, -PositionOnMap.Y);
+            if (MapBitmap != null)
+            {
+                Rectangle rc = MFCD2PictureBox.ClientRectangle;
+                e.Graphics.ResetTransform();
+                Matrix transformMatrix = new Matrix();
 
-            MFCD2HDGDisplayLabel.Text = Heading.ToString("000");
+                switch (MapOrientation)
+                {
+                    case MapOrientationType.TrackUp:
+                        
+                        // Translate, rotate and draw map image
+                        transformMatrix.Translate(-PixelPositionOnMap.X, -PixelPositionOnMap.Y);
+                        transformMatrix.RotateAt(-TrueHeading, new PointF(MFCD2PictureBox.Width / 2 + PixelPositionOnMap.X, MFCD2PictureBox.Height / 2 + PixelPositionOnMap.Y));
+                        e.Graphics.Transform = transformMatrix;
+                        e.Graphics.DrawImage(MapBitmap, rc.Width / 2, rc.Height / 2);
+
+                        // Draw Cross
+                        e.Graphics.ResetTransform();
+                        e.Graphics.DrawLine(Pens.Red, rc.Width / 2, rc.Height / 2 + 10, rc.Width / 2, rc.Height / 2 - 10);
+                        e.Graphics.DrawLine(Pens.Red, rc.Width / 2 + 10, rc.Height / 2, rc.Width / 2 - 10, rc.Height / 2);
+
+                        break;
+
+                    case MapOrientationType.NorthUp:
+
+                        // Translate and draw map image
+                        transformMatrix.Translate(-PixelPositionOnMap.X, -PixelPositionOnMap.Y);
+                        e.Graphics.Transform = transformMatrix;
+                        e.Graphics.DrawImage(MapBitmap, rc.Width / 2, rc.Height / 2);
+
+                        // Draw Cross
+                        e.Graphics.ResetTransform();
+
+                        // Test drawing cross by constructing the cross image on a new bitmap and overlaying to the map view
+                        Bitmap overlay = new Bitmap(rc.Width, rc.Height);
+                        using (Graphics g = Graphics.FromImage(overlay))
+                        {
+                            transformMatrix = new Matrix();
+                            transformMatrix.RotateAt(trueHeading, new PointF(rc.Width / 2, rc.Height / 2));
+                            g.Transform = transformMatrix;
+                            g.DrawLine(Pens.Red, rc.Width / 2, rc.Height / 2 + 10, rc.Width / 2, rc.Height / 2 - 10);
+                            g.DrawLine(Pens.Red, rc.Width / 2 + 10, rc.Height / 2, rc.Width / 2 - 10, rc.Height / 2);
+                        }
+                        e.Graphics.DrawImage(overlay, new PointF());
+                        overlay.Dispose();
+
+                        break;
+
+                    case MapOrientationType.MagNUp:
+
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+            }
         }
+
     }
 }
